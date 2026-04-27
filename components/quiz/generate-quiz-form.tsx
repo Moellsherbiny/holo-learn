@@ -31,7 +31,6 @@ export function GenerateQuizForm({ courseId, courses }: Props) {
 
   const [form, setForm] = useState({
     topic: "",
-    difficulty: "MEDIUM" as "EASY" | "MEDIUM" | "HARD",
     questionCount: 5,
     courseId,
     language: locale === "ar" ? "Arabic" : "English",
@@ -85,25 +84,7 @@ export function GenerateQuizForm({ courseId, courses }: Props) {
         />
       </div>
 
-      {/* Difficulty */}
-      <div className="space-y-2">
-        <Label>{t("difficulty")}</Label>
-        <Select
-          value={form.difficulty}
-          onValueChange={(v) =>
-            setForm({ ...form, difficulty: v as "EASY" | "MEDIUM" | "HARD" })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="EASY">{t("easy")}</SelectItem>
-            <SelectItem value="MEDIUM">{t("medium")}</SelectItem>
-            <SelectItem value="HARD">{t("hard")}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+
 
       {/* Question count */}
       <div className="space-y-2">

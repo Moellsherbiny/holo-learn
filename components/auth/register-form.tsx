@@ -64,7 +64,7 @@ export function RegisterForm() {
         throw new Error(data.message || "Something went wrong");
       }
 
-      toast.success(t("successToast") || "Account created successfully!");
+      toast.success(t("register.successToast") || "Account created successfully!");
       router.push("/auth/login");
     } catch (error: any) {
       toast.error(error.message);

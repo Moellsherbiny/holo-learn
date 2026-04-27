@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+
 import {prisma} from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import ModernCourseClient from "@/components/course/CourseView";
@@ -27,17 +27,22 @@ export default async function CoursePage({ params }: { params: Promise<{ courseI
 
   if (!course) notFound();
 
-  // Transform data for the client
-  const courseData = {
-    ...course,
-    modules: course.modules.map(m => ({
-      ...m,
-      lessons: m.lessons.map(l => ({
-        ...l,
-        isCompleted: l.progress.length > 0 && l.progress[0].completed
-      }))
-    }))
-  };
+const courseData = {
+  ...course,
+  modules: course.modules.map((m) => ({
+    ...m,
+    lessons: m.lessons.map((l) => ({
+      ...l,
+      type: String(l.type),
+      arModelUrl: l.arModelUrl ?? null,
+      videoUrl: l.videoUrl ?? null,
+      materialUrl: l.materialUrl ?? null,
+      isCompleted:
+        l.progress.length > 0 &&
+        l.progress[0].completed,
+    })),
+  })),
+};
 
   return <ModernCourseClient course={courseData} locale={locale} userId={userId} />;
 }

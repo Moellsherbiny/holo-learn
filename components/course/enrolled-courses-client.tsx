@@ -171,7 +171,7 @@ function CourseCard({ course }: { course: EnrolledCourse }) {
           size="sm"
           disabled={course.progressPercent === 100}
           className="w-full gap-2 mt-1"
-          onClick={() => router.push(`/student/courses/${course.id}/`)}
+          onClick={() => router.push(`/courses/${course.id}/study`)}
         >
           <ActionIcon className="w-3.5 h-3.5" />
           {actionLabel}
@@ -196,7 +196,7 @@ export function EnrolledCoursesClient({ courses }: EnrolledCoursesClientProps) {
   return (
     <div
       dir={isRtl ? "rtl" : "ltr"}
-      className="min-h-screen bg-background px-4 py-10 sm:px-8"
+      className="min-h-screen px-4 py-10 sm:px-8"
     >
       {/* Header */}
       <div className="mx-auto max-w-5xl mb-8">

@@ -83,8 +83,13 @@ export default async function DashboardLayout({
             Pages that need full-height (like the course page) render edge-to-edge.
             Pages that need a padded container wrap themselves in their own div.
           */}
-          <main className="flex-1 min-h-0 overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
-            {children}
+          <main 
+            className="flex-1 overflow-y-auto"
+            dir={isRtl ? "rtl" : "ltr"}
+          >
+            <div className="mx-auto w-full max-w-7xl p-6 md:p-10 lg:p-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              {children}
+            </div>
           </main>
 
         </SidebarInset>
