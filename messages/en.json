@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Holo Learn",
+    "name": "Optic Learn",
     "dept": "CS Department"
   },
   "nav": {
@@ -31,7 +31,7 @@
   },
   "howItWorks": {
     "badge": "The Process",
-    "title": "Holo Learn Works",
+    "title": "Optic Learn Works",
     "sub": "A seamless bridge between physical classroom technology and digital learning.",
     "steps": [
       {
@@ -133,12 +133,12 @@
     "hasAccount": "Already have an account?",
     "sign_in": "Sign In",
     "signing_in": "Signing in...",
-    "welcome": "Welcome to HoloLearn",
+    "welcome": "Welcome to OpticLearn",
     "subtitle": "Faculty of Specific Education · Computer Department",
     "email": "Email",
     "password": "Password",
     "forgotPassword": "Forgot password?",
-    "brand": "holoLearn",
+    "brand": "OpticLearn",
     "backToHome": "Back to Home",
     "side": {
       "tagline": "Student Portal",

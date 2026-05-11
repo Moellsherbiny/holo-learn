@@ -29,12 +29,12 @@ export function Logo({ href = "/", className }: LogoProps) {
           {/* Glow effect */}
           <span className="absolute inset-0 rounded-full bg-primary/10 blur-md opacity-0 group-hover:opacity-100 transition" />
 
-          HL
+          OL
         </span>
 
         {/* Text */}
         <span className="flex items-center font-bold text-lg tracking-tight text-foreground">
-          <span>Holo</span>
+          <span>Optic</span>
 
           <span className="bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">
             Learn

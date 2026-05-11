@@ -18,7 +18,7 @@
     "about": "حول المشروع"
   },
   "brand": {
-    "name": "Holo Learn",
+    "name": "Optic Learn",
     "dept": "قسم الحاسب الآلي"
   },
   "hero": {
@@ -31,7 +31,7 @@
   },
   "howItWorks": {
     "badge": "آلية العمل",
-    "title": "كيف تعمل منصة Holo Learn",
+    "title": "كيف تعمل منصة Optic Learn",
     "sub": "جسر سلس بين تقنية الفصل الدراسي والتعلم الرقمي.",
     "steps": [
       {
@@ -134,7 +134,7 @@
     "hasAccount": "لديك حساب بالفعل؟",
     "sign_in": "تسجيل الدخول",
     "signing_in": "جارٍ الدخول...",
-    "welcome": "مرحباً بك في HoloLearn",
+    "welcome": "مرحباً بك في OpticLearn",
     "subtitle": "كلية التربية النوعية · قسم الحاسب الآلي",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
