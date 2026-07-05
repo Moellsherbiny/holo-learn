@@ -68,7 +68,6 @@ export function TextLesson({ lesson }: Props) {
         "
       >
         <ReactMarkdown
-         
           components={{
             pre({ children }) {
               return (
@@ -80,6 +79,7 @@ export function TextLesson({ lesson }: Props) {
                 </pre>
               );
             },
+            
             code({ className, children, ...props }) {
               const isBlock = className?.includes("language-");
 
