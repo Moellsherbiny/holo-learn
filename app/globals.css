@@ -160,3 +160,24 @@
   display: none !important;
 }
 
+
+.prose {
+  direction: rtl;
+  text-align: right;
+}
+
+.prose p {
+  line-height: 2.2;
+}
+
+.prose ul,
+.prose ol {
+  padding-right: 1.5rem;
+  padding-left: 0;
+}
+
+.prose pre,
+.prose code {
+  direction: ltr;
+  text-align: left;
+}
