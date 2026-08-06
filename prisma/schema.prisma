@@ -41,6 +41,12 @@ model User {
   quizAttempts    QuizAttempt[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  teacherChats Chat[] @relation("TeacherChats")
+
+  studentChats Chat[] @relation("StudentChats")
+
+  messages Message[]
 }
 
 model Account {
@@ -229,4 +235,45 @@ model QuizAttempt {
 
   @@unique([quizId, studentId])
 }
+model Chat {
+  id String @id @default(cuid())
 
+  teacherId String
+  studentId String
+
+  teacher User @relation("TeacherChats", fields: [teacherId], references: [id], onDelete: Cascade)
+  student User @relation("StudentChats", fields: [studentId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  lastMessageAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherId, studentId])
+
+  @@index([teacherId])
+  @@index([studentId])
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  chatId String
+  senderId String
+
+  content String
+
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+  @@index([senderId])
+  @@index([createdAt])
+}

@@ -7,8 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { auth } from "@/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getUnreadMessagesCount } from "@/actions/chat/messagesNotRead";
 import { cn } from "@/lib/utils";
-
 export default async function DashboardLayout({
   children,
   params
@@ -21,6 +21,7 @@ export default async function DashboardLayout({
   const session = await auth();
   if (!session?.user?.id) redirect("/auth/login");
   if (session?.user?.role !== "TEACHER") redirect("/");
+  const unreadMessagesCount = await getUnreadMessagesCount();
   return (
     <SidebarProvider>
       <div 
@@ -30,7 +31,7 @@ export default async function DashboardLayout({
         )} 
         dir={isRtl ? "rtl" : "ltr"}
       >
-        <AppSidebar />
+        <AppSidebar unreadMessagesCount={unreadMessagesCount.count} />
         
         <SidebarInset className="bg-transparent">
           {/* Enhanced Sticky Header */}
@@ -62,6 +63,14 @@ export default async function DashboardLayout({
                   </AvatarFallback>
                 </Avatar>
               </Link>
+              {unreadMessagesCount.success &&  (
+                <div className="relative">
+                  <div className="absolute -inset-0.5 rounded-full bg-red-500 opacity-75" />
+                  <span className="relative text-xs font-bold text-white">
+                    {unreadMessagesCount.count}
+                  </span>
+                </div>
+              )}
             </div>
           </header>
 

@@ -3,12 +3,14 @@ import { getStudyPageData } from "@/actions/study";
 
 interface Props {
   params: Promise<{ courseId: string }>;
-  searchParams: { lesson?: string };
+  searchParams: Promise<{ lesson?: string }>;
 }
 
 export default async function StudyPage({ params, searchParams }: Props) {
   const { courseId } = await params;
-  const lessonId = searchParams.lesson;
+  const {lesson } = await searchParams;
+
+  const lessonId = lesson;
 
   const result = await getStudyPageData(courseId, lessonId);
 

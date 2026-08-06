@@ -1,7 +1,4 @@
 "use client";
-
-// components/study/LessonView.tsx
-
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -47,7 +44,7 @@ export function LessonView({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticCompleted, setOptimisticCompleted] = useState(
-    lesson.isCompleted
+    lesson.isCompleted,
   );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,14 +55,19 @@ export function LessonView({
     setError(null);
 
     startTransition(async () => {
-      const result = await toggleLessonProgress(
-        lesson.id,
-        course.id,
-        newVal
-      );
+      const result = await toggleLessonProgress(lesson.id, course.id, newVal);
+
       if (!result.success) {
-        setOptimisticCompleted(!newVal); // rollback
+        setOptimisticCompleted(!newVal);
         setError(result.error);
+        return;
+      }
+
+      // من هنا TypeScript يعرف إن result.success === true
+
+      if (newVal && result.data.courseCompleted && result.data.postQuizId) {
+        router.push(`/courses/${course.id}/quizzes/${result.data.postQuizId}`);
+        return;
       }
     });
   }
@@ -106,14 +108,16 @@ export function LessonView({
             >
               <Menu className="w-5 h-5" />
             </button>
-            <span className="text-sm text-white/60 truncate">{lesson.title}</span>
+            <span className="text-sm text-white/60 truncate">
+              {lesson.title}
+            </span>
           </div>
 
           {/* Lesson renderer */}
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
             {/* Breadcrumb */}
             {module && (
-              <p className="text-xs text-white/30 mb-4 truncate">
+              <p className="text-xs text-right text-white/30 mb-4 truncate">
                 {course.title}
                 <span className="mx-1.5">›</span>
                 {module.title}
@@ -121,7 +125,7 @@ export function LessonView({
             )}
 
             {/* Lesson title */}
-            <h1 className="text-xl sm:text-2xl font-bold text-white mb-6 leading-snug">
+            <h1 className="text-xl text-right sm:text-2xl font-bold text-white mb-6 leading-snug">
               {lesson.title}
             </h1>
 
@@ -136,9 +140,7 @@ export function LessonView({
             {lesson.type === LessonType.VIDEO && (
               <VideoLesson lesson={lesson} />
             )}
-            {lesson.type === LessonType.TEXT && (
-              <TextLesson lesson={lesson} />
-            )}
+            {lesson.type === LessonType.TEXT && <TextLesson lesson={lesson} />}
             {lesson.type === LessonType.MATERIAL && (
               <MaterialLesson lesson={lesson} />
             )}
@@ -159,11 +161,11 @@ export function LessonView({
                 "flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-colors",
                 prevLesson
                   ? "text-white/60 hover:text-white hover:bg-white/5"
-                  : "text-white/20 cursor-not-allowed"
+                  : "text-white/20 cursor-not-allowed",
               )}
             >
               <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Previous</span>
+              <span className="hidden sm:inline">السابق</span>
             </button>
 
             {/* Mark complete */}
@@ -171,10 +173,11 @@ export function LessonView({
               onClick={handleToggleComplete}
               disabled={isPending}
               className={cn(
+                "hover:cursor-pointer",
                 "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
                 optimisticCompleted
                   ? "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/20"
-                  : "bg-violet-600 hover:bg-violet-500 text-white"
+                  : "bg-violet-600 hover:bg-violet-500 text-white",
               )}
             >
               {isPending ? (
@@ -184,9 +187,7 @@ export function LessonView({
               ) : (
                 <Circle className="w-4 h-4" />
               )}
-              <span>
-                {optimisticCompleted ? "Completed" : "Mark complete"}
-              </span>
+              <span>{optimisticCompleted ? "مكتمل" : "اكملت الدرس"}</span>
             </button>
 
             {/* Next */}
@@ -197,10 +198,10 @@ export function LessonView({
                 "flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-colors",
                 nextLesson
                   ? "text-white/60 hover:text-white hover:bg-white/5"
-                  : "text-white/20 cursor-not-allowed"
+                  : "text-white/20 cursor-not-allowed",
               )}
             >
-              <span className="hidden sm:inline">Next</span>
+              <span className="hidden sm:inline">التالي</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

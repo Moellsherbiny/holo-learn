@@ -52,11 +52,11 @@ export function StudySidebar({
 
   // Default: open the module that contains the active lesson
   const defaultOpen = modules.find((m) =>
-    m.lessons.some((l) => l.id === activeLessonId)
+    m.lessons.some((l) => l.id === activeLessonId),
   )?.id;
 
   const [openModules, setOpenModules] = useState<Set<string>>(
-    new Set(defaultOpen ? [defaultOpen] : modules[0] ? [modules[0].id] : [])
+    new Set(defaultOpen ? [defaultOpen] : modules[0] ? [modules[0].id] : []),
   );
 
   function toggleModule(id: string) {
@@ -92,11 +92,20 @@ export function StudySidebar({
       <nav className="flex-1 overflow-y-auto py-2">
         {modules.map((mod, modIdx) => {
           const isOpen = openModules.has(mod.id);
+          const previousModule = modIdx > 0 ? modules[modIdx - 1] : null;
+
+          const isLocked =
+            previousModule !== null &&
+            previousModule.completedCount < previousModule.totalCount;
           return (
             <div key={mod.id} className="border-b border-white/5 last:border-0">
               {/* Module header */}
               <button
-                onClick={() => toggleModule(mod.id)}
+                onClick={() => {
+                  if (!isLocked) {
+                    toggleModule(mod.id);
+                  }
+                }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-white/3 transition-colors group"
               >
                 <span className="shrink-0 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-xs text-white/30 font-mono">
@@ -110,7 +119,7 @@ export function StudySidebar({
                     <span
                       className={cn(
                         "text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded",
-                        levelColor[mod.level]
+                        levelColor[mod.level],
                       )}
                     >
                       {mod.level.toLowerCase()}
@@ -120,16 +129,20 @@ export function StudySidebar({
                     </span>
                   </div>
                 </div>
-                <ChevronDown
-                  className={cn(
-                    "w-4 h-4 text-white/30 shrink-0 transition-transform duration-200",
-                    isOpen && "rotate-180"
-                  )}
-                />
+                {isLocked ? (
+                  <Lock className="w-4 h-4 text-white/30" />
+                ) : (
+                  <ChevronDown
+                    className={cn(
+                      "w-4 h-4 text-white/30 transition-transform",
+                      isOpen && "rotate-180",
+                    )}
+                  />
+                )}
               </button>
 
               {/* Lessons list */}
-              {isOpen && (
+              {isOpen && !isLocked && (
                 <ul className="pb-2">
                   {mod.lessons.map((lesson) => (
                     <LessonItem
@@ -168,7 +181,7 @@ function LessonItem({
           "flex items-center gap-3 px-4 py-2.5 pl-12 text-sm transition-all",
           isActive
             ? "bg-violet-500/15 text-white border-r-2 border-violet-500"
-            : "text-white/50 hover:text-white/80 hover:bg-white/3"
+            : "text-white/50 hover:text-white/80 hover:bg-white/3",
         )}
       >
         {/* Completion indicator */}
@@ -182,7 +195,7 @@ function LessonItem({
         <Icon
           className={cn(
             "w-3.5 h-3.5 shrink-0",
-            isActive ? "text-violet-400" : "text-white/25"
+            isActive ? "text-violet-400" : "text-white/25",
           )}
         />
 

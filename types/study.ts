@@ -88,6 +88,12 @@ export interface StudyPageData {
   prevLesson: LessonWithProgress | null;
 }
 
-export type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+export type ActionResult<T, E = {}> =
+  | {
+      success: true;
+      data: T;
+    }
+  | ({
+      success: false;
+      error: string;
+    } & E);

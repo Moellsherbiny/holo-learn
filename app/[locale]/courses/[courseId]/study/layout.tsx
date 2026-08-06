@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getStudyPageData } from "@/actions/study";
 import { StudySidebar } from "@/components/study/StudySidebar";
 import { StudyHeader } from "@/components/study/StudyHeader";
-
+import { PreQuizRequired } from "@/components/study/preQuizReq";
 interface Props {
   children: React.ReactNode;
   params: Promise<{ courseId: string }>;
@@ -16,8 +16,18 @@ export default async function StudyLayout({ children, params }: Props) {
   const result = await getStudyPageData(courseId);
 
   if (!result.success) {
-    redirect(`/courses/${courseId}?error=${encodeURIComponent(result.error)}`);
+  if (result.error === "PRE_QUIZ_REQUIRED") {
+    return (
+      <PreQuizRequired
+        quizId={result.preQuiz!.id}
+        title={result.preQuiz!.title}
+        courseId={courseId}
+      />
+    );
   }
+
+  redirect(`/courses/${courseId}`);
+}
 
   const { course, modules } = result.data;
 
