@@ -1,26 +1,37 @@
+
 "use client";
-import { RegisterForm } from "@/components/auth/register-form";
+
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+
+import { RegisterForm } from "@/components/auth/register-form";
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
 
   return (
-    <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("createAccount")}</h1>
-        <p className="text-sm text-muted-foreground">{t("register.subtitle")}</p>
+    <main
+      className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-8"
+      dir="rtl"
+    >
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("createAccount")}
+          </h1>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            {t("register.subtitle")}
+          </p>
+        </div>
+
+        {/* Register Card */}
+        <div className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+          <RegisterForm />
+        </div>
+
+       
       </div>
-
-      <RegisterForm />
-
-      <p className="px-8 text-center text-sm text-muted-foreground">
-        {t("register.hasAccount")}{" "}
-        <Link href="/auth/login" className="underline underline-offset-4 hover:text-primary">
-          {t("register.signIn")}
-        </Link>
-      </p>
-    </div>
+    </main>
   );
 }

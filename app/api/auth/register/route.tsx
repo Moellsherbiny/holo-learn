@@ -3,7 +3,7 @@ import { registerSchema } from "@/lib/validators/auth/register.schema";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { sendInitialOTP } from "@/actions/verify";
-
+import { UserRole } from "@/lib/generated/prisma/client";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -14,13 +14,11 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json(
         { error: parsed.error.flatten() },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const { name, email, password } = parsed.data;
-
-        
+    const { name, email, password, role } = parsed.data;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -30,26 +28,26 @@ export async function POST(req: Request) {
     if (existingUser) {
       return NextResponse.json(
         { error: "Email already in use" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
-
+    const useRole = role === "teacher" ? UserRole.TEACHER : UserRole.STUDENT;
     // Create user
     const user = await prisma.user.create({
       data: {
         name: name ?? null,
         email,
         password: hashedPassword,
+        role: useRole,
         emailVerified: null,
         is_otp_verified: false,
       },
     });
 
     await sendInitialOTP({ email, mode: "register" });
-
 
     return NextResponse.json(
       {
@@ -59,14 +57,14 @@ export async function POST(req: Request) {
           email: user.email,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
