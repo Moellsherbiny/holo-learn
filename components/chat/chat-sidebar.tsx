@@ -60,7 +60,7 @@ export default function ChatSidebar({
       {/* Chats */}
       <ScrollArea className="flex-1">
         {chats.length === 0 ? (
-          <div className="flex h-full min-h-[300px] items-center justify-center px-6 text-center">
+          <div className="flex h-full min-h-75 items-center justify-center px-6 text-center">
             <div>
               <p className="text-sm font-medium">
                 لا توجد محادثات حتى الآن
