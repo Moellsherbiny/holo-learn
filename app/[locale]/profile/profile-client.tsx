@@ -1,46 +1,43 @@
+
 "use client";
 
 import { useRef, useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import { toast } from "sonner";
-import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-
+import { toast } from "sonner";
 import {
-  User,
-  Mail,
-  Lock,
-  ShieldCheck,
   Camera,
-  Save,
-  Loader2,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  GraduationCap,
+  LoaderCircle,
+  LockKeyhole,
   LogOut,
-  Settings,
+  Mail,
+  Save,
+  ShieldCheck,
+  UserRound,
+  UserRoundCog,
 } from "lucide-react";
-import ChangePasswordDialog from "@/components/auth/change-password-dialog";
+
 import { updateUser } from "@/actions/profile";
 import { uploadToCloudinary } from "@/actions/cloudinary";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import ChangePasswordDialog from "@/components/auth/change-password-dialog";
+import { BecomeTeacherDialog } from "@/components/profile/becomeTeacherDialog";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
-import Navbar from "@/components/layout/navbar";
-import { BecomeTeacherDialog } from "@/components/profile/becomeTeacherDialog";
 type UserRole = "STUDENT" | "TEACHER" | "ADMIN";
+
 interface ProfileUser {
   id: string;
   name: string | null;
@@ -59,94 +56,97 @@ export default function ProfileClient({
 }: ProfileClientProps) {
   const t = useTranslations("Profile");
   const locale = useLocale();
+  const router = useRouter();
 
-  const isRtl = locale === "ar";
+  const isArabic = locale.startsWith("ar");
+  const DirectionIcon = isArabic ? ChevronLeft : ChevronRight;
 
   const [user, setUser] = useState<ProfileUser>(initialUser);
-
   const [loading, setLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* -----------------------------
-     Save Profile
-  ----------------------------- */
+  const roleLabel = {
+    STUDENT: isArabic ? "طالب" : "Student",
+    TEACHER: isArabic ? "مدرّس" : "Teacher",
+    ADMIN: isArabic ? "مدير النظام" : "Administrator",
+  }[user.role];
 
   async function handleSave() {
-    if (!user.name?.trim()) {
-      toast.error(isRtl ? "الاسم مطلوب." : "Name is required.");
+    const name = user.name?.trim() ?? "";
+    const email = user.email.trim();
 
+    if (name.length < 2) {
+      toast.error(
+        isArabic
+          ? "الاسم يجب أن يتكون من حرفين على الأقل."
+          : "Name must contain at least 2 characters.",
+      );
       return;
     }
 
-    if (!user.email?.trim()) {
-      toast.error(isRtl ? "البريد الإلكتروني مطلوب." : "Email is required.");
-
+    if (!email) {
+      toast.error(
+        isArabic
+          ? "البريد الإلكتروني مطلوب."
+          : "Email is required.",
+      );
       return;
     }
 
     setLoading(true);
 
     try {
+      // The server action must validate the fields and authorize the user.
+      // Role and level are deliberately not accepted from the client.
       await updateUser({
-        name: user.name.trim(),
-        email: user.email.trim(),
+        name,
+        email,
         image: user.image ?? "",
-        level: user.level,
-        role: user.role,
       });
 
+      setUser((current) => ({ ...current, name, email }));
+
       toast.success(t("updated"));
+      router.refresh();
     } catch (error) {
-      console.error(error);
+      console.error("Profile update failed:", error);
 
       toast.error(
-        isRtl
-          ? "حدث خطأ أثناء حفظ التغييرات."
-          : "Something went wrong while saving.",
+        isArabic
+          ? "تعذر حفظ التغييرات. حاول مرة أخرى."
+          : "Unable to save changes. Please try again.",
       );
     } finally {
       setLoading(false);
     }
   }
 
-  /* -----------------------------
-     Logout
-  ----------------------------- */
-
-  async function handleLogout() {
-    await signOut({
-      callbackUrl: "/auth/login",
-    });
-  }
-
-  /* -----------------------------
-     Upload Avatar
-  ----------------------------- */
-
-  async function handleImageClick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  async function handleImageChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (!file.type.startsWith("image/")) {
       toast.error(
-        isRtl
-          ? "حجم الصورة يجب ألا يتجاوز 2 ميجابايت."
-          : "Image too large. Max 2MB.",
+        isArabic
+          ? "يرجى اختيار ملف صورة صالح."
+          : "Please select a valid image file.",
       );
-
-      e.target.value = "";
+      event.target.value = "";
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
+    if (file.size > 2 * 1024 * 1024) {
       toast.error(
-        isRtl ? "يرجى اختيار صورة صحيحة." : "Please select a valid image.",
+        isArabic
+          ? "حجم الصورة يجب ألا يتجاوز 2 ميجابايت."
+          : "Image size must not exceed 2 MB.",
       );
-
-      e.target.value = "";
+      event.target.value = "";
       return;
     }
 
@@ -155,245 +155,344 @@ export default function ProfileClient({
     try {
       const result = await uploadToCloudinary(file);
 
-      if (result) {
-        setUser((prev) => ({
-          ...prev,
-          image: result,
-        }));
-
-        toast.success(
-          isRtl
-            ? "تم رفع الصورة. اضغط حفظ لتأكيد التغيير."
-            : "Photo uploaded. Click save to keep changes.",
-        );
+      if (!result) {
+        throw new Error("Image upload failed");
       }
+
+      setUser((current) => ({ ...current, image: result }));
+
+      toast.success(
+        isArabic
+          ? "تم رفع الصورة. اضغط حفظ التغييرات لتأكيدها."
+          : "Image uploaded. Save changes to confirm it.",
+      );
     } catch (error) {
-      console.error(error);
+      console.error("Avatar upload failed:", error);
 
       toast.error(
-        isRtl
-          ? "حدث خطأ أثناء رفع الصورة."
-          : "Something went wrong with the upload.",
+        isArabic
+          ? "تعذر رفع الصورة. حاول مرة أخرى."
+          : "Unable to upload image. Please try again.",
       );
     } finally {
       setIsUploading(false);
-      e.target.value = "";
+      event.target.value = "";
     }
   }
 
-  return (
-    <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-muted/30">
-      <Navbar />
+  async function handleLogout() {
+    await signOut({
+      redirectTo: `/${locale}/auth/login`,
+    });
+  }
 
-      <main className="container mx-auto max-w-6xl px-4 py-8 md:py-12">
-        {/* Page Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+  const displayName = user.name?.trim() || (isArabic ? "مستخدم" : "User");
+  const initial = displayName.charAt(0).toUpperCase();
+
+  return (
+    <div
+      dir={isArabic ? "rtl" : "ltr"}
+      className="mx-auto w-full max-w-5xl space-y-7 p-4 sm:p-6 lg:p-8"
+    >
+      {/* Page heading */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="mb-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <UserRoundCog className="size-4" />
+            <span>Optic Learn</span>
+            <span className="text-border">/</span>
+            <span>{t("title")}</span>
+          </div>
+
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             {t("title")}
           </h1>
 
-          <p className="mt-2 text-sm text-muted-foreground">
-            {isRtl
-              ? "إدارة معلومات حسابك وإعدادات الأمان."
-              : "Manage your personal information and security settings."}
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+            {isArabic
+              ? "أدر معلوماتك الشخصية وصورة حسابك وإعدادات الأمان من مكان واحد."
+              : "Manage your personal details, profile photo, and account security in one place."}
           </p>
         </div>
 
-        {/* Main Grid */}
-        <div className="mx-auto max-w-4xl space-y-6">
-          {/* Profile Header */}
-          <Card>
-            <CardContent className="p-6 md:p-8">
-              <div className="flex flex-col items-center gap-6 sm:flex-row">
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  <Avatar className="h-28 w-28 border-4 border-background shadow-md">
-                    <AvatarImage
-                      src={user.image ?? undefined}
-                      alt={user.name ?? "User"}
-                      className="object-cover"
-                    />
+        <Badge
+          variant="outline"
+          className="w-fit gap-1.5 rounded-lg px-3 py-1.5 font-medium"
+        >
+          <span className="size-1.5 rounded-full bg-primary" />
+          {roleLabel}
+        </Badge>
+      </header>
 
-                    <AvatarFallback className="text-3xl font-bold">
-                      {user.name?.charAt(0).toUpperCase() ?? "U"}
-                    </AvatarFallback>
-                  </Avatar>
+      {/* Profile overview */}
+      <Card className="overflow-hidden rounded-2xl border-border/80 bg-card py-0 shadow-sm">
+        <div className="h-1 bg-primary/70" />
+
+        <CardContent className="p-5 sm:p-7">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            {/* Avatar */}
+            <div className="relative mx-auto shrink-0 sm:mx-0">
+              <Avatar className="size-24 rounded-2xl border border-border bg-muted shadow-sm sm:size-28">
+                <AvatarImage
+                  src={user.image ?? undefined}
+                  alt={displayName}
+                  className="object-cover"
+                />
+                <AvatarFallback className="rounded-2xl bg-primary/10 text-2xl font-semibold text-primary">
+                  {initial}
+                </AvatarFallback>
+              </Avatar>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+                aria-label={isArabic ? "اختيار صورة الحساب" : "Choose profile image"}
+              />
+
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                disabled={isUploading}
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={isArabic ? "تغيير الصورة" : "Change photo"}
+                className="absolute -bottom-2 -end-2 size-9 rounded-xl border border-border shadow-sm"
+              >
+                {isUploading ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Camera className="size-4" />
+                )}
+              </Button>
+            </div>
+
+            {/* User summary */}
+            <div className="min-w-0 flex-1 text-center sm:text-start">
+              <h2 className="truncate text-xl font-semibold tracking-tight">
+                {displayName}
+              </h2>
+
+              <p
+                dir="ltr"
+                className="mt-1 truncate text-sm text-muted-foreground sm:text-start"
+              >
+                {user.email}
+              </p>
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <Badge variant="secondary" className="rounded-lg font-medium">
+                  {roleLabel}
+                </Badge>
+
+                {user.role === "STUDENT" && (
+                  <Badge variant="outline" className="rounded-lg font-medium">
+                    <GraduationCap className="me-1 size-3.5" />
+                    {isArabic ? `المستوى ${user.level}` : `Level ${user.level}`}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground sm:self-start">
+              <ShieldCheck className="size-4 text-primary" />
+              <span>
+                {isArabic ? "إعدادات الحساب" : "Account settings"}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Personal information */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold tracking-tight">
+            {t("accountInfo")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isArabic
+              ? "حدّث المعلومات الأساسية المرتبطة بحسابك."
+              : "Update the basic information associated with your account."}
+          </p>
+        </div>
+
+        <Card className="rounded-2xl border-border/80 bg-card shadow-sm">
+          <CardContent className="space-y-6 p-5 sm:p-7">
+            <div className="grid gap-5 sm:grid-cols-2">
+              {/* Name */}
+              <div className="space-y-2">
+                <Label htmlFor="profile-name">{t("name")}</Label>
+
+                <div className="relative">
+                  <UserRound className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
                   <Input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageClick}
+                    id="profile-name"
+                    autoComplete="name"
+                    value={user.name ?? ""}
+                    onChange={(event) =>
+                      setUser((current) => ({
+                        ...current,
+                        name: event.target.value,
+                      }))
+                    }
+                    disabled={loading || isUploading}
+                    className="h-11 rounded-xl ps-10"
+                    placeholder={isArabic ? "الاسم بالكامل" : "Full name"}
                   />
-
-                  <Button
-                    type="button"
-                    size="icon"
-                    disabled={isUploading}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 inset-e-0 h-9 w-9 rounded-full"
-                  >
-                    {isUploading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Camera className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-
-                {/* User Info */}
-                <div className="min-w-0 flex-1 text-center sm:text-start">
-                  <h2 className="text-2xl font-bold">{user.name || "User"}</h2>
-
-                  <p className="mt-1 truncate text-sm text-muted-foreground">
-                    {user.email}
-                  </p>
-
-                  <div className="mt-3 flex flex-wrap justify-center gap-2 sm:justify-start">
-                    {user.role === "STUDENT" && (
-                      <Badge variant="secondary">{user.level}</Badge>
-                    )}
-
-                    <Badge>{user.role}</Badge>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                {t("accountInfo")}
-              </CardTitle>
-
-              <CardDescription>
-                {isRtl
-                  ? "تعديل معلومات حسابك الأساسية."
-                  : "Update your basic account information."}
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="space-y-5">
-              <div className="grid gap-5 sm:grid-cols-2">
-                {/* Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="name">{t("name")}</Label>
-
-                  <div className="relative">
-                    <User className="absolute inset-s-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-                    <Input
-                      id="name"
-                      value={user.name ?? ""}
-                      onChange={(e) =>
-                        setUser({
-                          ...user,
-                          name: e.target.value,
-                        })
-                      }
-                      className="h-11 ps-10"
-                    />
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email">{t("email")}</Label>
-
-                  <div className="relative">
-                    <Mail className="absolute inset-s-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-                    <Input
-                      id="email"
-                      type="email"
-                      dir="ltr"
-                      value={user.email}
-                      onChange={(e) =>
-                        setUser({
-                          ...user,
-                          email: e.target.value,
-                        })
-                      }
-                      className="h-11 ps-10"
-                    />
-                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleSave}
-                  disabled={loading || isUploading}
-                  className="gap-2"
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="profile-email">{t("email")}</Label>
 
-                  {loading ? t("saving") : t("saveChanges")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
-          {/* Security */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-                {t("security")}
-              </CardTitle>
-
-              <CardDescription>
-                {isRtl ? "إدارة أمان حسابك." : "Manage your account security."}
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent>
-              <div className="flex flex-col gap-4 rounded-xl border bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Lock className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <p className="font-medium">{t("newPassword")}</p>
-
-                    <p className="text-sm text-muted-foreground">
-                      {isRtl
-                        ? "قم بتغيير كلمة المرور الخاصة بحسابك."
-                        : "Change your account password."}
-                    </p>
-                  </div>
+                  <Input
+                    id="profile-email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    dir="ltr"
+                    value={user.email}
+                    onChange={(event) =>
+                      setUser((current) => ({
+                        ...current,
+                        email: event.target.value,
+                      }))
+                    }
+                    disabled={loading || isUploading}
+                    className="h-11 rounded-xl ps-10 text-start"
+                    placeholder="name@example.com"
+                  />
                 </div>
 
+                <p className="text-xs leading-5 text-muted-foreground">
+                  {isArabic
+                    ? "تأكد من صحة البريد الإلكتروني قبل حفظ التغييرات."
+                    : "Make sure your email address is correct before saving."}
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs leading-5 text-muted-foreground">
+                {isArabic
+                  ? "راجع بياناتك قبل تأكيد التغييرات."
+                  : "Review your details before confirming your changes."}
+              </p>
+
+              <Button
+                type="button"
+                onClick={handleSave}
+                disabled={loading || isUploading}
+                className="h-10 gap-2 rounded-xl px-5"
+              >
+                {loading ? (
+                  <LoaderCircle className="size-4 animate-spin" />
+                ) : (
+                  <Save className="size-4" />
+                )}
+
+                {loading ? t("saving") : t("saveChanges")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Security */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold tracking-tight">
+            {t("security")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {isArabic
+              ? "حافظ على أمان حسابك من خلال تحديث كلمة المرور."
+              : "Keep your account secure by managing your password."}
+          </p>
+        </div>
+
+        <Card className="rounded-2xl border-border/80 bg-card shadow-sm">
+          <CardContent className="p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/60">
+                <LockKeyhole className="size-5 text-primary" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold">
+                  {t("newPassword")}
+                </h3>
+
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {isArabic
+                    ? "استخدم كلمة مرور قوية للحفاظ على خصوصية حسابك."
+                    : "Use a strong password to help protect your account."}
+                </p>
+              </div>
+
+              <div className="shrink-0">
                 <ChangePasswordDialog />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Student upgrade */}
+      {user.role === "STUDENT" && (
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold tracking-tight">
+            {isArabic ? "خيارات الحساب" : "Account options"}
+          </h2>
+
+          <Card className="rounded-2xl border-border/80 bg-card shadow-sm">
+            <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/60">
+                <GraduationCap className="size-5 text-primary" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-semibold">
+                  {isArabic ? "الانضمام إلى هيئة التدريس" : "Become a teacher"}
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {isArabic
+                    ? "ابدأ إجراءات طلب التحول إلى حساب مدرّس."
+                    : "Start the process of requesting a teacher account."}
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                <BecomeTeacherDialog userId={user.id} />
+              </div>
             </CardContent>
           </Card>
+        </section>
+      )}
 
-          {/* Student Action */}
-          {user.role === "STUDENT" && <BecomeTeacherDialog userId={user.id} />}
-
-          {/* Logout */}
-          <div className="flex justify-center pt-2">
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOut className="h-4 w-4" />
-              {t("logout")}
-            </Button>
-          </div>
-        </div>
-      </main>
+      {/* Logout */}
+      <div className="flex justify-start border-t border-border/70 pt-5">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={handleLogout}
+          className="h-10 gap-2 rounded-xl px-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
+        >
+          <LogOut className="size-4" />
+          {t("logout")}
+          <DirectionIcon className="size-3.5 opacity-70" />
+        </Button>
+      </div>
     </div>
   );
 }

@@ -1,113 +1,138 @@
+
+import type { CSSProperties, ReactNode } from "react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import {
+  ArrowUpRight,
+  MessageCircleMore,
+} from "lucide-react";
+
+import { auth } from "@/auth";
 import { AppSidebar } from "@/components/app-sidebar";
+import LanguageSwitcher from "@/components/layout/language-switcher";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import LanguageSwitcher from "@/components/layout/language-switcher";
-import Link from "next/link";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { getUnreadMessagesCount } from "@/actions/chat/messagesNotRead";
-import { MessageCircleMore } from "lucide-react";
+import { UserNav } from "@/components/dashboard/user-nav";
 
 export default async function DashboardLayout({
   children,
   params,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const isRtl = locale === "ar";
+  const isArabic = locale.startsWith("ar");
+  const isRtl = isArabic;
+
   const session = await auth();
 
-  if (!session?.user?.id) redirect("/auth/login");
-  if (session?.user?.role !== "STUDENT") redirect("/");
+  if (!session?.user?.id) {
+    redirect(`/${locale}/auth/login`);
+  }
+
+  if (session.user.role !== "STUDENT") {
+    redirect(`/${locale}`);
+  }
+
   const unreadMessagesCount = await getUnreadMessagesCount();
+  const userName = session.user.name?.trim() || "User";
+  const userInitial = userName.charAt(0).toUpperCase();
+
+  const messagesHref = `/${locale}/chat`;
+  const profileHref = `/${locale}/profile`;
 
   return (
     <SidebarProvider>
       <div
-        className={cn(
-          "flex h-screen w-full overflow-hidden bg-zinc-50/50 dark:bg-zinc-950",
-          isRtl ? "font-arabic" : "font-sans",
-        )}
         dir={isRtl ? "rtl" : "ltr"}
+        className={cn(
+          "flex h-svh w-full overflow-hidden bg-background text-foreground",
+          isArabic ? "font-arabic" : "font-sans",
+        )}
       >
-        <AppSidebar unreadMessagesCount={unreadMessagesCount.count} />
+        <AppSidebar
+          unreadMessagesCount={unreadMessagesCount.count}
+        />
 
-        {/* SidebarInset must fill remaining height and not scroll itself */}
-        <SidebarInset className="flex flex-col min-h-0 flex-1 bg-transparent overflow-hidden">
-          {/* Sticky Header — fixed 64px, set as CSS var for children to use */}
+        <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
+          {/* Dashboard header */}
           <header
-            style={{ "--header-height": "64px" } as React.CSSProperties}
-            className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between px-6
-                       border-b border-zinc-200/50 dark:border-zinc-800/50
-                       bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md"
+            style={
+              { "--header-height": "4rem" } as CSSProperties
+            }
+            className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-border/70 bg-background/90 px-3 backdrop-blur-xl sm:px-5 lg:px-7"
           >
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="-ms-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors" />
+            {/* Sidebar control and page context */}
+            <div className="flex min-w-0 items-center gap-3">
+              <SidebarTrigger className="size-9 shrink-0 rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground" />
+
               <Separator
                 orientation="vertical"
-                className="h-6 bg-zinc-200 dark:bg-zinc-800"
+                className="h-7! bg-border"
               />
-              <div className="flex flex-col">
-                <h1 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 leading-none mb-1">
-                  Platform
-                </h1>
-                <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                  Overview
-                </span>
+
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  Optic Learn
+                </p>
+
+                <p className="truncate text-sm font-semibold tracking-tight">
+                  {isArabic ? "مساحة التعلم" : "Learning Space"}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 sm:gap-6">
-              <div className="hidden sm:block">
+            {/* Header actions */}
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <div className="hidden sm:flex">
                 <LanguageSwitcher />
               </div>
+
+              {/* Messages */}
               <Link
-                href="/chat"
-                className="group relative flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white transition-all hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                href={messagesHref}
+                aria-label={
+                  isArabic ? "الرسائل" : "Messages"
+                }
+                className="group relative inline-flex size-9 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
-                <MessageCircleMore className="h-5 w-5 text-zinc-700 transition-colors group-hover:text-primary dark:text-zinc-300" />
+                <MessageCircleMore
+                  className="size-[18px]"
+                  strokeWidth={1.8}
+                />
 
                 {unreadMessagesCount.success &&
                   unreadMessagesCount.count > 0 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow">
+                    <span className="absolute -end-1.5 -top-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-background bg-destructive px-1 text-[9px] font-bold leading-none text-destructive-foreground">
                       {unreadMessagesCount.count > 99
                         ? "99+"
                         : unreadMessagesCount.count}
                     </span>
                   )}
               </Link>
-              <Link href="/profile" className="group relative">
-                <div className="absolute -inset-0.5 rounded-full bg-linear-to-tr from-primary to-purple-500 opacity-0 group-hover:opacity-100 transition duration-300 blur" />
-                <Avatar className="relative h-9 w-9 border-2 border-white dark:border-zinc-950 shadow-sm">
-                  <AvatarImage
-                    src={session?.user?.image as string}
-                    alt="User"
-                  />
-                  <AvatarFallback className="bg-zinc-100 dark:bg-zinc-800 text-[10px] font-black">
-                    {session?.user?.name?.charAt(0) || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
+
+              <UserNav />
             </div>
           </header>
 
-          {/*
-            Main content area:
-            - flex-1 + min-h-0 → takes remaining height after the header
-            - overflow-hidden → lets each page control its own scroll
-            Pages that need full-height (like the course page) render edge-to-edge.
-            Pages that need a padded container wrap themselves in their own div.
-          */}
-          <main className="flex-1 overflow-y-auto" dir={isRtl ? "rtl" : "ltr"}>
-            <div className="mx-auto w-full max-w-7xl p-6 md:p-10 lg:p-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          {/* Main scrollable area */}
+          <main
+            dir={isRtl ? "rtl" : "ltr"}
+            className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain"
+          >
+            <div className="mx-auto w-full max-w-7xl animate-in fade-in slide-in-from-bottom-1 duration-300">
               {children}
             </div>
           </main>

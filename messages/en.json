@@ -3,6 +3,57 @@
     "name": "Optic Learn",
     "dept": "CS Department"
   },
+   "LandingPage": {
+    "nav": {
+      "about": "About",
+      "features": "Learning experience",
+      "journey": "Your journey",
+      "signIn": "Sign in"
+    },
+    "hero": {
+      "eyebrow": "A THOUGHTFUL WAY TO LEARN",
+      "titleLine1": "See things",
+      "titleLine2": "differently.",
+      "titleLine3": "Learn deeply.",
+      "description": "Discover a learning experience built around curiosity, meaningful practice, and steady progress. One lesson at a time.",
+      "primaryCta": "Explore lessons",
+      "secondaryCta": "Discover how",
+      "supportingText": "Learn at your pace. Build understanding that lasts."
+    },
+    "visual": {
+      "cardEyebrow": "YOUR LEARNING JOURNEY",
+      "cardTitle": "Every detail matters.",
+      "cardFooter": "Ready for your next discovery",
+      "caption": "A new perspective starts here."
+    },
+    "features": {
+      "eyebrow": "THE EXPERIENCE",
+      "heading": "Learning should make sense.",
+      "description": "A focused learning environment where every lesson has a purpose and every step brings you closer to understanding.",
+      "learnMore": "Explore the experience",
+      "lessons": {
+        "title": "Learn with structure",
+        "description": "Explore organized lessons that turn complex ideas into clear, manageable steps."
+      },
+      "practice": {
+        "title": "Practice with purpose",
+        "description": "Test your understanding through interactive quizzes and meaningful activities."
+      },
+      "progress": {
+        "title": "See your progress",
+        "description": "Follow your learning journey, revisit lessons, and recognize how far you have come."
+      }
+    },
+    "journey": {
+      "eyebrow": "YOUR NEXT CHAPTER",
+      "heading": "A little curiosity can take you a long way.",
+      "description": "Start exploring, discover new ideas, and make every learning session count.",
+      "cta": "Start exploring"
+    },
+    "footer": {
+      "description": "A learning experience built on curiosity and discovery."
+    }
+  },
   "nav": {
     "ar": "AR Learning",
     "profile": "Profile",
@@ -120,6 +171,8 @@
     "logout": "Logout"
   },
   "auth": {
+    "profile": "Profile",
+    "logout": "Logout",
     "loginTitle": "Login",
     "registerTitle": "Create Account",
     "loading": "Loading...",
@@ -215,6 +268,8 @@
       "successToast": "Reset link sent!"
     },
     "validation": {
+      "roleRequired": "Please select an account type",
+      "registerError": "Registration failed. Please try again",
       "nameRequired": "Full name is required.",
       "nameMin": "Name must be at least 2 characters.",
       "emailRequired": "Email is required.",

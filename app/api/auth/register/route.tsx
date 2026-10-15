@@ -4,11 +4,11 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { sendInitialOTP } from "@/actions/verify";
 import { UserRole } from "@/lib/generated/prisma/client";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Validate with Zod
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -20,9 +20,10 @@ export async function POST(req: Request) {
 
     const { name, email, password, role } = parsed.data;
 
-    // Check if user exists
+    const normalizedEmail = email.trim().toLowerCase();
+
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -32,22 +33,47 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
+
     const useRole = role === "teacher" ? UserRole.TEACHER : UserRole.STUDENT;
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        name: name ?? null,
-        email,
-        password: hashedPassword,
-        role: useRole,
-        emailVerified: null,
-        is_otp_verified: false,
-      },
+
+    // Create the user and enroll students in all existing courses atomically.
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          name: name ?? null,
+          email: normalizedEmail,
+          password: hashedPassword,
+          role: useRole,
+          emailVerified: null,
+          is_otp_verified: false,
+        },
+      });
+
+      if (useRole === UserRole.STUDENT) {
+        const courses = await tx.course.findMany({
+          select: { id: true },
+        });
+
+        if (courses.length > 0) {
+          await tx.enrollment.createMany({
+            data: courses.map((course) => ({
+              courseId: course.id,
+              studentId: newUser.id,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
+      return newUser;
     });
 
-    await sendInitialOTP({ email, mode: "register" });
+    // Send OTP after the database transaction succeeds.
+    await sendInitialOTP({
+      email: normalizedEmail,
+      mode: "register",
+    });
 
     return NextResponse.json(
       {
@@ -60,7 +86,7 @@ export async function POST(req: Request) {
       { status: 201 },
     );
   } catch (error) {
-    console.error(error);
+    console.error("Registration failed:", error);
 
     return NextResponse.json(
       { error: "Internal server error" },
